@@ -5,14 +5,12 @@ uniform vec4 u_highlightColor;
 #endif
 
 in vec2 v_textureCoordinates;
-in vec4 v_pickColor;
 in vec4 v_color;
+in vec4 v_pickColor;
 in float v_eyeDistance;
 
-#ifdef SDF
 in vec4 v_outlineColor;
 in float v_outlineWidth;
-#endif
 
 #ifdef FRAGMENT_DEPTH_CHECK
 in vec4 v_textureCoordinateBounds;                  // the min and max x and y values for the texture coordinates
@@ -89,7 +87,7 @@ void main()
 {
     vec4 color = vec4(0.0, 1.0, 0.0, 1.0);
     float transparency = 1.0;
-    float borderWidth = v_eyeDistance*100.0;
+    float borderWidth = v_eyeDistance/2.0;
     if (v_textureCoordinates.x < borderWidth) {
         transparency = 0.0;
     }
@@ -104,10 +102,9 @@ void main()
     }
 
     if (transparency >= 0.95) {
-        out_FragColor = v_pickColor;
-        out_FragColor.a = 1.0;
-    } else {
         out_FragColor = v_color;
+    } else {
+        out_FragColor = v_outlineColor;
     }
 
 #ifdef SDF

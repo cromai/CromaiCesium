@@ -29,10 +29,9 @@ out mat2 v_rotationMatrix;
 out vec4 v_pickColor;
 out vec4 v_color;
 out float v_eyeDistance;
-#ifdef SDF
+
 out vec4 v_outlineColor;
 out float v_outlineWidth;
-#endif
 
 const float UPPER_BOUND = 32768.0;
 
@@ -341,9 +340,9 @@ if (lengthSq < disableDepthTestDistance) {
     positionEC = addScreenSpaceOffset(positionEC, imageSize, scale, direction, origin, translate, pixelOffset, alignedAxis, validAlignedAxis, rotation, sizeInMeters, rotationMatrix, mpp);
     gl_Position = czm_projection * positionEC;
     v_textureCoordinates = direction;
-    float lengthSq = dot(positionEC.xyz, positionEC.xyz)/100000000000000.0;
+    float length = czm_metersPerPixel(positionEC);
     v_color = color;
-    v_eyeDistance = lengthSq;
+    v_eyeDistance = length;
 
 #ifdef LOG_DEPTH
     czm_vertexLogDepth();
@@ -406,7 +405,6 @@ if (lengthSq < disableDepthTestDistance) {
 
 #endif
 
-#ifdef SDF
     vec4 outlineColor;
     float outlineWidth;
 
@@ -428,7 +426,6 @@ if (lengthSq < disableDepthTestDistance) {
     v_outlineWidth = outlineWidth / 255.0;
     v_outlineColor = outlineColor;
     v_outlineColor.a *= translucency;
-#endif
 
     v_pickColor = pickColor;
 

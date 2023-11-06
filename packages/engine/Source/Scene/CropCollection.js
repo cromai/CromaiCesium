@@ -784,6 +784,12 @@ function createVAF(
       componentDatatype: ComponentDatatype.FLOAT,
       vertexBuffer: getVertexBufferInstanced(context),
     });
+    attributes.push({
+      index: attributeLocations.sdf,
+      componentsPerAttribute: 2,
+      componentDatatype: ComponentDatatype.FLOAT,
+      usage: buffersUsage[SDF_INDEX],
+    });
   }
 
   if (defined(batchTable)) {
@@ -1136,12 +1142,44 @@ function writeCompressedAttrib2(
   vafWriters,
   billboard
 ) {
+  //WRITE OUTLINE COLOR AND WIDTH
+  {
+    let i;
+    const writer = vafWriters[attributeLocations.sdf];
+
+    const outlineColor = billboard.outlineColor;
+    const outlineWidth = billboard.outlineWidth;
+
+    const red = Color.floatToByte(outlineColor.red);
+    const green = Color.floatToByte(outlineColor.green);
+    const blue = Color.floatToByte(outlineColor.blue);
+    const compressed0 = red * LEFT_SHIFT16 + green * LEFT_SHIFT8 + blue;
+
+    // Compute the relative outline distance
+    const outlineDistance = outlineWidth / SDFSettings.RADIUS;
+    const compressed1 =
+      Color.floatToByte(outlineColor.alpha) * LEFT_SHIFT16 +
+      Color.floatToByte(outlineDistance) * LEFT_SHIFT8;
+
+    if (billboardCollection._instanced) {
+      i = billboard._index;
+      writer(i, compressed0, compressed1);
+    } else {
+      i = billboard._index * 4;
+      writer(i + 0, compressed0 + LOWER_LEFT, compressed1);
+      writer(i + 1, compressed0 + LOWER_RIGHT, compressed1);
+      writer(i + 2, compressed0 + UPPER_RIGHT, compressed1);
+      writer(i + 3, compressed0 + UPPER_LEFT, compressed1);
+    }
+  }
+
   let i;
   const writer = vafWriters[attributeLocations.compressedAttribute2];
   const color = billboard.color;
-  const pickColor = billboard.pickColor; //!defined(billboardCollection._batchTable)
-  //? billboard.getPickId(frameState.context).color
-  //: Color.WHITE;
+  //const pickColor = billboard.pickColor; //!defined(billboardCollection._batchTable)
+  const pickColor = !defined(billboardCollection._batchTable)
+    ? billboard.getPickId(frameState.context).color
+    : Color.WHITE;
   const sizeInMeters = billboard.sizeInMeters ? 1.0 : 0.0;
   const validAlignedAxis =
     Math.abs(Cartesian3.magnitudeSquared(billboard.alignedAxis) - 1.0) <

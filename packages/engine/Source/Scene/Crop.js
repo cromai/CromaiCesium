@@ -211,7 +211,7 @@ function Crop(options, billboardCollection) {
 
   this._clusterShow = true;
   this._outlineColor = Color.clone(
-    defaultValue(options.outlineColor, Color.BLACK)
+    defaultValue(options.outlineColor, Color.WHITE)
   );
   this._outlineWidth = defaultValue(options.outlineWidth, 0.0);
 
@@ -1032,7 +1032,8 @@ Object.defineProperties(Crop.prototype, {
       const outlineColor = this._outlineColor;
       if (!Color.equals(outlineColor, value)) {
         Color.clone(value, outlineColor);
-        makeDirty(this, SDF_INDEX);
+        //makeDirty(this, SDF_INDEX);
+        makeDirty(this, COLOR_INDEX);
       }
     },
   },
